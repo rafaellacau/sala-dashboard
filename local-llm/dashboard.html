@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard de Reservas de Sala</title>
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Gestión práctica</p>
+          <h1>Sala de Postproducción INTEC</h1>
+          <p class="subtitle">Seguimiento práctico de ocupación, uso y reservas de la sala.</p>
+        </div>
+        <button id="resetBtn" class="ghost-btn">Restablecer datos</button>
+      </header>
+
+      <section class="cards" id="metrics"></section>
+
+      <section class="grid">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Nueva reserva de sala</h2>
+          </div>
+          <form id="reservationForm" class="form">
+            <label>
+              <span>Título / motivo</span>
+              <input type="text" name="title" placeholder="Edición de video / Revisión de material" required />
+            </label>
+            <label>
+              <span>Responsable principal</span>
+              <input type="text" name="owner" placeholder="Ana Pérez" required />
+            </label>
+            <label>
+              <span>Rol</span>
+              <select name="role">
+                <option value="Profesor">Profesor</option>
+                <option value="Estudiante">Estudiante</option>
+                <option value="Pasante">Pasante</option>
+                <option value="Asistente de sala">Asistente de sala</option>
+              </select>
+            </label>
+            <label>
+              <span>ID del responsable</span>
+              <input type="text" name="ownerId" placeholder="12345" required />
+            </label>
+            <label>
+              <span>Usuarios adicionales (Nombre + ID)</span>
+              <textarea name="participants" rows="3" placeholder="Luis Gómez - 67890&#10;María Torres - 54321"></textarea>
+            </label>
+            <label>
+              <span>Trabajo a realizar</span>
+              <input type="text" name="work" placeholder="Edición, color grading, montaje" required />
+            </label>
+            <label>
+              <span>Proyecto</span>
+              <input type="text" name="project" placeholder="Campaña verano 2026" required />
+            </label>
+            <label>
+              <span>Horario de atención al público</span>
+              <input type="text" name="schedule" placeholder="09:00 - 13:00 / 14:00 - 18:00" />
+            </label>
+            <label>
+              <span>Sala</span>
+              <input type="text" name="room" placeholder="Sala A" required />
+            </label>
+            <div class="row">
+              <label>
+                <span>Fecha</span>
+                <input type="date" name="date" required />
+              </label>
+              <label>
+                <span>Hora inicio</span>
+                <input type="time" name="startTime" required />
+              </label>
+            </div>
+            <div class="row">
+              <label>
+                <span>Hora fin</span>
+                <input type="time" name="endTime" required />
+              </label>
+              <label>
+                <span>Estado</span>
+                <select name="status">
+                  <option value="Confirmada">Confirmada</option>
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="Cancelada">Cancelada</option>
+                </select>
+              </label>
+            </div>
+            <button type="submit" class="primary-btn">Guardar reserva</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Próximas reservas</h2>
+          </div>
+          <div class="filters">
+            <input id="filterSearch" type="text" placeholder="Buscar responsable, proyecto o trabajo" />
+            <select id="filterRoom">
+              <option value="">Todas las salas</option>
+            </select>
+            <select id="filterStatus">
+              <option value="">Todos los estados</option>
+              <option value="Confirmada">Confirmada</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Finalizada">Finalizada</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
+            <button id="clearFiltersBtn" class="ghost-btn" type="button">Limpiar</button>
+          </div>
+          <div id="upcomingList" class="list"></div>
+        </div>
+      </section>
+
+      <section class="panel calendar-panel">
+        <div class="panel-header">
+          <h2>Calendario de ocupación</h2>
+          <p>Vista rápida por semana</p>
+        </div>
+        <div id="calendar" class="calendar"></div>
+      </section>
+
+      <section class="panel history-panel">
+        <div class="panel-header">
+          <h2>Historial de uso</h2>
+          <p>Reservas finalizadas, canceladas y cerradas</p>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Asistente local</h2>
+          <p>Asistente impulsado por el modelo local descargado en tu Mac</p>
+        </div>
+        <textarea id="assistantPrompt" rows="4" placeholder="Ejemplo: Sugiere una mejora para el dashboard de reservas..."></textarea>
+        <button id="assistantBtn" class="primary-btn" style="margin-top: 10px;">Preguntar al modelo local</button>
+        <div id="assistantReply" class="item" style="margin-top: 12px;"></div>
+      </section>
+    </div>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>

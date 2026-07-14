@@ -1,0 +1,332 @@
+const STORAGE_KEY = 'sala-dashboard-reservations-v1';
+
+const defaultReservations = [
+  {
+    id: crypto.randomUUID(),
+    title: 'Edición de video',
+    owner: 'Laura Álvarez',
+    role: 'Profesor',
+    ownerId: '1001',
+    participants: 'Carlos Ruiz - 1002',
+    work: 'Montaje y audio',
+    project: 'Campaña verano 2026',
+    schedule: '09:00 - 13:00',
+    room: 'Sala A',
+    date: '2026-07-15',
+    startTime: '09:00',
+    endTime: '10:00',
+    status: 'Confirmada'
+  },
+  {
+    id: crypto.randomUUID(),
+    title: 'Revisión de reels',
+    owner: 'Miguel Torres',
+    role: 'Estudiante',
+    ownerId: '1003',
+    participants: 'Ana Pérez - 1004',
+    work: 'Color grading',
+    project: 'Contenido social',
+    schedule: '14:00 - 18:00',
+    room: 'Sala B',
+    date: '2026-07-14',
+    startTime: '14:00',
+    endTime: '15:30',
+    status: 'Finalizada'
+  },
+  {
+    id: crypto.randomUUID(),
+    title: 'Capacitación interna',
+    owner: 'Paula Díaz',
+    role: 'Pasante',
+    ownerId: '1005',
+    participants: 'Sofía Vega - 1006',
+    work: 'Entrenamiento de herramientas',
+    project: 'Mejora de procesos',
+    schedule: '10:00 - 12:30',
+    room: 'Sala A',
+    date: '2026-07-16',
+    startTime: '11:00',
+    endTime: '12:30',
+    status: 'Pendiente'
+  },
+  {
+    id: crypto.randomUUID(),
+    title: 'Sesión de diseño',
+    owner: 'Diego Ramos',
+    role: 'Asistente de sala',
+    ownerId: '1007',
+    participants: 'Nora Luján - 1008',
+    work: 'Storyboard',
+    project: 'Identidad visual',
+    schedule: '16:00 - 17:00',
+    room: 'Sala C',
+    date: '2026-07-12',
+    startTime: '16:00',
+    endTime: '17:00',
+    status: 'Cancelada'
+  }
+];
+
+let reservations = loadReservations();
+const filterState = { search: '', room: '', status: '' };
+
+function loadReservations() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return defaultReservations;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return defaultReservations;
+  }
+}
+
+function saveReservations() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(reservations));
+}
+
+function formatDate(dateStr) {
+  const date = new Date(`${dateStr}T00:00:00`);
+  return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function formatRange(item) {
+  return `${formatDate(item.date)} · ${item.startTime} a ${item.endTime}`;
+}
+
+function formatDetails(item) {
+  const parts = [];
+  if (item.owner) parts.push(`Responsable: ${item.owner} (${item.ownerId || 'sin ID'})`);
+  if (item.role) parts.push(`Rol: ${item.role}`);
+  if (item.work) parts.push(`Trabajo: ${item.work}`);
+  if (item.project) parts.push(`Proyecto: ${item.project}`);
+  if (item.schedule) parts.push(`Horario: ${item.schedule}`);
+  if (item.participants) parts.push(`Participantes: ${item.participants}`);
+  return parts.join(' · ');
+}
+
+function normalizeStatus(item) {
+  const now = new Date();
+  const eventDate = new Date(`${item.date}T${item.endTime}`);
+  if (item.status === 'Cancelada') return 'Cancelada';
+  if (eventDate < now) return 'Finalizada';
+  return item.status;
+}
+
+function getFilteredReservations({ statuses } = {}) {
+  const normalized = reservations.map((item) => ({ ...item, status: normalizeStatus(item) }));
+  const searchText = filterState.search.trim().toLowerCase();
+
+  return normalized.filter((item) => {
+    const hayTexto = !searchText || [item.title, item.owner, item.project, item.work, item.participants, item.room].join(' ').toLowerCase().includes(searchText);
+    const haySala = !filterState.room || item.room === filterState.room;
+    const hayEstado = !filterState.status || item.status === filterState.status;
+    const hayStatus = !statuses || statuses.includes(item.status);
+    return hayTexto && haySala && hayEstado && hayStatus;
+  });
+}
+
+function getMetrics() {
+  const normalized = reservations.map((item) => ({ ...item, status: normalizeStatus(item) }));
+  const today = new Date().toISOString().slice(0, 10);
+  const total = normalized.length;
+  const todayCount = normalized.filter((item) => item.date === today && item.status !== 'Cancelada' && item.status !== 'Finalizada').length;
+  const confirmed = normalized.filter((item) => item.status === 'Confirmada' || item.status === 'Finalizada').length;
+  const pending = normalized.filter((item) => item.status === 'Pendiente').length;
+  return { total, todayCount, confirmed, pending };
+}
+
+function renderMetrics() {
+  const metrics = getMetrics();
+  const container = document.getElementById('metrics');
+  container.innerHTML = [
+    { label: 'Total reservas', value: metrics.total },
+    { label: 'Ocupadas hoy', value: metrics.todayCount },
+    { label: 'Confirmadas', value: metrics.confirmed },
+    { label: 'Pendientes', value: metrics.pending }
+  ].map((metric) => `
+    <article class="metric">
+      <div class="value">${metric.value}</div>
+      <div class="label">${metric.label}</div>
+    </article>
+  `).join('');
+}
+
+function renderUpcoming() {
+  const list = document.getElementById('upcomingList');
+  const normalized = getFilteredReservations({ statuses: ['Confirmada', 'Pendiente'] }).sort((a, b) => a.date.localeCompare(b.date));
+
+  if (!normalized.length) {
+    list.innerHTML = '<div class="item"><p>No hay reservas próximas con esos filtros.</p></div>';
+    return;
+  }
+
+  list.innerHTML = normalized.map((item) => `
+    <article class="item">
+      <h3>${item.title}</h3>
+      <div class="meta">${item.room} · ${item.owner}</div>
+      <div class="meta">${formatRange(item)}</div>
+      <div class="meta">${formatDetails(item)}</div>
+      <span class="badge ${item.status.toLowerCase()}">${item.status}</span>
+    </article>
+  `).join('');
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  const normalized = getFilteredReservations({ statuses: ['Finalizada', 'Cancelada'] }).sort((a, b) => b.date.localeCompare(a.date));
+
+  if (!normalized.length) {
+    list.innerHTML = '<div class="item"><p>No hay historial con esos filtros.</p></div>';
+    return;
+  }
+
+  list.innerHTML = normalized.map((item) => `
+    <article class="item">
+      <h3>${item.title}</h3>
+      <div class="meta">${item.room} · ${item.owner}</div>
+      <div class="meta">${formatRange(item)}</div>
+      <div class="meta">${formatDetails(item)}</div>
+      <span class="badge ${item.status.toLowerCase()}">${item.status}</span>
+    </article>
+  `).join('');
+}
+
+function renderFilters() {
+  const roomSelect = document.getElementById('filterRoom');
+  const rooms = [...new Set(reservations.map((item) => item.room).filter(Boolean))].sort();
+  const currentValue = roomSelect.value;
+  roomSelect.innerHTML = '<option value="">Todas las salas</option>' + rooms.map((room) => `<option value="${room}">${room}</option>`).join('');
+  roomSelect.value = currentValue || filterState.room;
+}
+
+function render() {
+  renderMetrics();
+  renderFilters();
+  renderUpcoming();
+  renderHistory();
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const calendar = document.getElementById('calendar');
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(startOfWeek);
+    date.setDate(startOfWeek.getDate() + index);
+    return date;
+  });
+
+  calendar.innerHTML = days.map((date) => {
+    const dateKey = date.toISOString().slice(0, 10);
+    const dayItems = getFilteredReservations().filter((item) => item.date === dateKey);
+    return `
+      <div class="day-cell">
+        <div class="day-number">${date.getDate()}/${date.getMonth() + 1}</div>
+        ${dayItems.map((item) => `<span class="event-pill ${item.status.toLowerCase()}">${item.title}</span>`).join('')}
+      </div>
+    `;
+  }).join('');
+}
+
+async function askAssistant() {
+  const prompt = document.getElementById('assistantPrompt').value.trim();
+  const replyBox = document.getElementById('assistantReply');
+  if (!prompt) {
+    replyBox.innerHTML = '<p>Escribe una pregunta o tarea para el modelo.</p>';
+    return;
+  }
+
+  replyBox.innerHTML = '<p>Consultando el modelo local...</p>';
+  try {
+    const response = await fetch('http://127.0.0.1:5001/api/assistant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await response.json();
+    replyBox.innerHTML = `<p>${data.reply || 'Sin respuesta.'}</p>`;
+  } catch (error) {
+    replyBox.innerHTML = `<p>Error al contactar al modelo local: ${error.message}</p>`;
+  }
+}
+
+function resetData() {
+  reservations = [...defaultReservations];
+  saveReservations();
+  render();
+}
+
+function bindFilters() {
+  const searchInput = document.getElementById('filterSearch');
+  const roomSelect = document.getElementById('filterRoom');
+  const statusSelect = document.getElementById('filterStatus');
+  const clearBtn = document.getElementById('clearFiltersBtn');
+
+  searchInput.addEventListener('input', (event) => {
+    filterState.search = event.target.value;
+    render();
+  });
+
+  roomSelect.addEventListener('change', (event) => {
+    filterState.room = event.target.value;
+    render();
+  });
+
+  statusSelect.addEventListener('change', (event) => {
+    filterState.status = event.target.value;
+    render();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    filterState.search = '';
+    filterState.room = '';
+    filterState.status = '';
+    searchInput.value = '';
+    roomSelect.value = '';
+    statusSelect.value = '';
+    render();
+  });
+}
+
+function initFormDefaults() {
+  const dateInput = document.querySelector('input[name="date"]');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = new Date().toISOString().slice(0, 10);
+  }
+}
+
+document.getElementById('reservationForm').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const formData = new FormData(event.currentTarget);
+  const newReservation = {
+    id: crypto.randomUUID(),
+    title: formData.get('title').toString().trim(),
+    owner: formData.get('owner').toString().trim(),
+    role: formData.get('role').toString().trim(),
+    ownerId: formData.get('ownerId').toString().trim(),
+    participants: formData.get('participants').toString().trim(),
+    work: formData.get('work').toString().trim(),
+    project: formData.get('project').toString().trim(),
+    schedule: formData.get('schedule').toString().trim(),
+    room: formData.get('room').toString().trim(),
+    date: formData.get('date').toString(),
+    startTime: formData.get('startTime').toString(),
+    endTime: formData.get('endTime').toString(),
+    status: formData.get('status').toString()
+  };
+  reservations.push(newReservation);
+  saveReservations();
+  event.currentTarget.reset();
+  render();
+});
+
+document.getElementById('resetBtn').addEventListener('click', resetData);
+document.getElementById('assistantBtn').addEventListener('click', askAssistant);
+
+bindFilters();
+initFormDefaults();
+render();
+saveReservations();
