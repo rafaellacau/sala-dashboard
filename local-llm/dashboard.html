@@ -14,7 +14,7 @@
           <h1>Sala de Postproducción INTEC</h1>
           <p class="subtitle">Seguimiento práctico de ocupación, uso y reservas de la sala.</p>
         </div>
-        <button id="resetBtn" class="ghost-btn">Restablecer datos</button>
+        <button id="resetBtn" class="ghost-btn" title="Requiere clave">Restablecer datos (clave)</button>
       </header>
 
       <section class="cards" id="metrics"></section>
@@ -119,9 +119,28 @@
       <section class="panel calendar-panel">
         <div class="panel-header">
           <h2>Calendario de ocupación</h2>
-          <p>Vista rápida por semana</p>
+          <p>Vista semanal de 8:00 AM a 9:00 PM</p>
+        </div>
+        <div class="legend" aria-label="Semáforo de ocupación">
+          <span class="legend-item"><i class="dot occupied"></i>Rojo: ocupada</span>
+          <span class="legend-item"><i class="dot free"></i>Verde: desocupada</span>
+          <span class="legend-item"><i class="dot support"></i>Azul: asistente/pasante</span>
         </div>
         <div id="calendar" class="calendar"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Contactos de laboratorio</h2>
+          <p>Atención a usuarios</p>
+        </div>
+        <div class="contact-list">
+          <article class="item">
+            <h3>Profesor Rafael Lacau</h3>
+            <div class="meta">Coordinador</div>
+            <div class="meta">Correo: rafael.lacau@intec.edu.do</div>
+          </article>
+        </div>
       </section>
 
       <section class="panel history-panel">
