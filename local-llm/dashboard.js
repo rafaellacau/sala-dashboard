@@ -3,6 +3,12 @@ const RESET_PASSWORD = 'intec2026';
 const WORK_START_HOUR = 8;
 const WORK_END_HOUR = 21;
 const NON_BLOCKING_ROLES = new Set(['Asistente de sala', 'Pasante']);
+const ROOM_MAP = new Map([
+  ['Sala A', 'Sala de Postproducción'],
+  ['Sala B', 'Sala de Proyección'],
+  ['Sala C', 'Sala de Proyección']
+]);
+const ALLOWED_ROOMS = ['Sala de Postproducción', 'Sala de Proyección'];
 let memoryStoreRaw = null;
 let calendarFocusDate = new Date();
 let editingReservationId = null;
@@ -18,7 +24,7 @@ const defaultReservations = [
     work: 'Montaje y audio',
     project: 'Campaña verano 2026',
     schedule: '09:00 - 13:00',
-    room: 'Sala A',
+    room: 'Sala de Postproducción',
     date: '2026-07-15',
     startTime: '09:00',
     endTime: '10:00',
@@ -34,7 +40,7 @@ const defaultReservations = [
     work: 'Color grading',
     project: 'Contenido social',
     schedule: '14:00 - 18:00',
-    room: 'Sala B',
+    room: 'Sala de Proyección',
     date: '2026-07-14',
     startTime: '14:00',
     endTime: '15:30',
@@ -50,7 +56,7 @@ const defaultReservations = [
     work: 'Entrenamiento de herramientas',
     project: 'Mejora de procesos',
     schedule: '10:00 - 12:30',
-    room: 'Sala A',
+    room: 'Sala de Postproducción',
     date: '2026-07-16',
     startTime: '11:00',
     endTime: '12:30',
@@ -66,7 +72,7 @@ const defaultReservations = [
     work: 'Storyboard',
     project: 'Identidad visual',
     schedule: '16:00 - 17:00',
-    room: 'Sala C',
+    room: 'Sala de Proyección',
     date: '2026-07-12',
     startTime: '16:00',
     endTime: '17:00',
@@ -79,6 +85,17 @@ const filterState = { search: '', room: '', status: '' };
 
 function getDefaultReservations() {
   return defaultReservations.map((item) => ({ ...item }));
+}
+
+function normalizeRoom(room) {
+  return ROOM_MAP.get(room) || room;
+}
+
+function normalizeReservationRooms(items) {
+  return items.map((item) => ({
+    ...item,
+    room: normalizeRoom(item.room)
+  }));
 }
 
 function toMinutes(value) {
@@ -136,7 +153,8 @@ function loadReservations() {
   }
   if (!raw) return getDefaultReservations();
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return normalizeReservationRooms(parsed);
   } catch {
     return getDefaultReservations();
   }
@@ -436,7 +454,7 @@ function renderHistory() {
 
 function renderFilters() {
   const roomSelect = document.getElementById('filterRoom');
-  const rooms = [...new Set(reservations.map((item) => item.room).filter(Boolean))].sort();
+  const rooms = [...new Set([...ALLOWED_ROOMS, ...reservations.map((item) => item.room).filter(Boolean)])].sort();
   const currentValue = roomSelect.value;
   roomSelect.innerHTML = '<option value="">Todas las salas</option>' + rooms.map((room) => `<option value="${room}">${room}</option>`).join('');
   roomSelect.value = currentValue || filterState.room;
@@ -754,7 +772,7 @@ document.getElementById('reservationForm').addEventListener('submit', (event) =>
     work: formData.get('work').toString().trim(),
     project: formData.get('project').toString().trim(),
     schedule: formData.get('schedule').toString().trim(),
-    room: formData.get('room').toString().trim(),
+    room: normalizeRoom(formData.get('room').toString().trim()),
     date: formData.get('date').toString(),
     startTime: formData.get('startTime').toString(),
     endTime: formData.get('endTime').toString(),
