@@ -269,15 +269,6 @@ input, select, button { font: inherit; padding: 10px 12px; border-radius: 10px; 
         <div id="historyList" class="history-list"></div>
       </section>
 
-      <section class="panel">
-        <div class="panel-header">
-          <h2>Asistente local</h2>
-          <p>Asistente impulsado por el modelo local descargado en tu Mac</p>
-        </div>
-        <textarea id="assistantPrompt" rows="4" placeholder="Ejemplo: Sugiere una mejora para el dashboard de reservas..."></textarea>
-        <button id="assistantBtn" class="primary-btn" style="margin-top: 10px;">Preguntar al modelo local</button>
-        <div id="assistantReply" class="item" style="margin-top: 12px;"></div>
-      </section>
     </div>
 
     <script>
@@ -594,34 +585,6 @@ function renderCalendar() {
   calendar.innerHTML = [`<div class="week-head"></div>`, dayHeaders, ...rows].join('');
 }
 
-async function askAssistant() {
-  const prompt = document.getElementById('assistantPrompt').value.trim();
-  const replyBox = document.getElementById('assistantReply');
-  if (!prompt) {
-    replyBox.innerHTML = '<p>Escribe una pregunta o tarea para el modelo.</p>';
-    return;
-  }
-
-  const isLocalHost = ['127.0.0.1', 'localhost'].includes(window.location.hostname);
-  if (!isLocalHost) {
-    replyBox.innerHTML = '<p>Asistente local no disponible desde SharePoint. Esta función solo opera en tu computador (localhost).</p>';
-    return;
-  }
-
-  replyBox.innerHTML = '<p>Consultando el modelo local...</p>';
-  try {
-    const response = await fetch('http://127.0.0.1:5001/api/assistant', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
-    });
-    const data = await response.json();
-    replyBox.innerHTML = `<p>${data.reply || 'Sin respuesta.'}</p>`;
-  } catch (error) {
-    replyBox.innerHTML = `<p>Error al contactar al modelo local: ${error.message}</p>`;
-  }
-}
-
 function resetData() {
   const password = window.prompt('Ingresa la clave para restablecer los datos:');
   if (password !== RESET_PASSWORD) {
@@ -738,8 +701,6 @@ document.getElementById('reservationForm').addEventListener('submit', (event) =>
 });
 
 document.getElementById('resetBtn').addEventListener('click', resetData);
-document.getElementById('assistantBtn').addEventListener('click', askAssistant);
-
 bindFilters();
 initFormDefaults();
 render();
