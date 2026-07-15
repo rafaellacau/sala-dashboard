@@ -354,7 +354,7 @@ function resetData() {
   }
 
   memoryStoreRaw = null;
-  reservations = getDefaultReservations();
+  reservations = [];
   filterState.search = '';
   filterState.room = '';
   filterState.status = '';
@@ -368,7 +368,7 @@ function resetData() {
 
   saveReservations();
   render();
-  window.alert('Datos restablecidos correctamente.');
+  window.alert('Datos restablecidos: no hay reservas activas.');
 }
 
 function hasConflict(newItem) {
