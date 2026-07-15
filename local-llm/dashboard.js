@@ -367,8 +367,8 @@ function resetData() {
   if (statusSelect) statusSelect.value = '';
 
   saveReservations();
-  render();
   window.alert('Datos restablecidos: no hay reservas activas.');
+  window.location.reload();
 }
 
 function hasConflict(newItem) {
