@@ -137,6 +137,108 @@ async function clearBrowserCacheStorage() {
   }
 }
 
+function askResetPassword() {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = [
+      'position:fixed',
+      'inset:0',
+      'background:rgba(0,0,0,0.65)',
+      'display:flex',
+      'align-items:center',
+      'justify-content:center',
+      'z-index:9999',
+      'padding:16px'
+    ].join(';');
+
+    const panel = document.createElement('div');
+    panel.style.cssText = [
+      'width:min(420px,100%)',
+      'background:#0f1b2d',
+      'border:1px solid rgba(255,255,255,0.12)',
+      'border-radius:14px',
+      'padding:16px',
+      'color:#f3f7ff',
+      'box-shadow:0 16px 40px rgba(0,0,0,0.45)'
+    ].join(';');
+
+    const title = document.createElement('h3');
+    title.textContent = 'Restablecer datos';
+    title.style.cssText = 'margin:0 0 8px;font-size:1.05rem;';
+
+    const text = document.createElement('p');
+    text.textContent = 'Ingresa la clave para confirmar el restablecimiento.';
+    text.style.cssText = 'margin:0 0 12px;color:#b8c7df;font-size:0.92rem;';
+
+    const input = document.createElement('input');
+    input.type = 'password';
+    input.placeholder = 'Clave';
+    input.style.cssText = [
+      'width:100%',
+      'padding:10px 12px',
+      'border-radius:10px',
+      'border:1px solid rgba(255,255,255,0.18)',
+      'background:#13233a',
+      'color:#f3f7ff',
+      'margin-bottom:12px'
+    ].join(';');
+
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.style.cssText = [
+      'padding:8px 12px',
+      'border-radius:10px',
+      'border:1px solid rgba(255,255,255,0.2)',
+      'background:transparent',
+      'color:#f3f7ff',
+      'cursor:pointer'
+    ].join(';');
+
+    const acceptBtn = document.createElement('button');
+    acceptBtn.type = 'button';
+    acceptBtn.textContent = 'Confirmar';
+    acceptBtn.style.cssText = [
+      'padding:8px 12px',
+      'border-radius:10px',
+      'border:0',
+      'background:#4f8cff',
+      'color:#fff',
+      'cursor:pointer'
+    ].join(';');
+
+    const finish = (value) => {
+      overlay.remove();
+      resolve(value);
+    };
+
+    cancelBtn.addEventListener('click', () => finish(null));
+    acceptBtn.addEventListener('click', () => finish(input.value));
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) finish(null);
+    });
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        finish(input.value);
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        finish(null);
+      }
+    });
+
+    actions.append(cancelBtn, acceptBtn);
+    panel.append(title, text, input, actions);
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
+    input.focus();
+  });
+}
+
 function formatDate(dateStr) {
   const date = new Date(`${dateStr}T00:00:00`);
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -355,7 +457,7 @@ async function askAssistant() {
 }
 
 async function resetData() {
-  const password = window.prompt('Ingresa la clave para restablecer los datos:');
+  const password = await askResetPassword();
   if (password === null) return;
   if (password.trim() !== RESET_PASSWORD) {
     window.alert('Clave incorrecta. No se restablecieron los datos.');
@@ -383,8 +485,8 @@ async function resetData() {
   if (statusSelect) statusSelect.value = '';
 
   saveReservations();
+  render();
   window.alert('Datos restablecidos: no hay reservas activas.');
-  window.location.replace(`${window.location.pathname}?v=${Date.now()}`);
 }
 
 function hasConflict(newItem) {
