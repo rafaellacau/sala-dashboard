@@ -96,6 +96,18 @@ function setCalendarFocusDate(dateStr) {
   }
 }
 
+function shiftCalendarWeeks(weeks) {
+  const next = new Date(calendarFocusDate);
+  next.setDate(next.getDate() + (weeks * 7));
+  calendarFocusDate = next;
+  renderCalendar();
+}
+
+function focusCurrentWeek() {
+  calendarFocusDate = new Date();
+  renderCalendar();
+}
+
 function isSunday(dateStr) {
   const date = new Date(`${dateStr}T00:00:00`);
   return date.getDay() === 0;
@@ -451,6 +463,13 @@ function renderCalendar() {
     return `<div class="week-head">${label}</div>`;
   }).join('');
 
+  const weekRangeLabel = document.getElementById('weekRangeLabel');
+  if (weekRangeLabel) {
+    const rangeStart = days[0].toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+    const rangeEnd = days[days.length - 1].toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    weekRangeLabel.textContent = `Semana visible: ${rangeStart} al ${rangeEnd}`;
+  }
+
   const filtered = getFilteredReservations();
   const rows = [];
 
@@ -614,6 +633,22 @@ function bindFilters() {
   });
 }
 
+function bindCalendarNavigation() {
+  const prevBtn = document.getElementById('prevWeekBtn');
+  const nextBtn = document.getElementById('nextWeekBtn');
+  const todayBtn = document.getElementById('todayWeekBtn');
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => shiftCalendarWeeks(-1));
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => shiftCalendarWeeks(1));
+  }
+  if (todayBtn) {
+    todayBtn.addEventListener('click', focusCurrentWeek);
+  }
+}
+
 function initFormDefaults() {
   const dateInput = document.querySelector('input[name="date"]');
   if (dateInput && !dateInput.value) {
@@ -683,6 +718,7 @@ document.getElementById('resetBtn').addEventListener('click', resetData);
 document.getElementById('assistantBtn').addEventListener('click', askAssistant);
 
 bindFilters();
+bindCalendarNavigation();
 initFormDefaults();
 render();
 saveReservations();

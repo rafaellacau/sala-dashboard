@@ -124,9 +124,17 @@
 
       <section class="panel calendar-panel">
         <div class="panel-header">
-          <h2>Calendario de ocupación</h2>
-          <p>Vista semanal (lunes a sábado) de 8:00 AM a 9:00 PM</p>
+          <div>
+            <h2>Calendario de ocupación</h2>
+            <p>Vista semanal (lunes a sábado) de 8:00 AM a 9:00 PM</p>
+          </div>
+          <div class="calendar-nav" aria-label="Navegación semanal">
+            <button id="prevWeekBtn" class="ghost-btn" type="button">Semana anterior</button>
+            <button id="todayWeekBtn" class="ghost-btn" type="button">Semana actual</button>
+            <button id="nextWeekBtn" class="ghost-btn" type="button">Semana siguiente</button>
+          </div>
         </div>
+        <p id="weekRangeLabel" class="calendar-range"></p>
         <div class="legend" aria-label="Semáforo de ocupación">
           <span class="legend-item"><i class="dot occupied"></i>Rojo: ocupada</span>
           <span class="legend-item"><i class="dot free"></i>Verde: desocupada</span>

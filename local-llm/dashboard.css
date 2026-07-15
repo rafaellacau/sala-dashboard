@@ -61,6 +61,10 @@ input, select, button { font: inherit; padding: 10px 12px; border-radius: 10px; 
 .dot.free { background: #22c55e; }
 .dot.support { background: #3b82f6; }
 
+.calendar-nav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.calendar-nav .ghost-btn { padding: 8px 10px; }
+.calendar-range { margin: 0 0 12px; color: var(--muted); font-size: 0.9rem; }
+
 .calendar {
   display: grid;
   grid-template-columns: 80px repeat(6, minmax(120px, 1fr));
@@ -113,4 +117,5 @@ input, select, button { font: inherit; padding: 10px 12px; border-radius: 10px; 
   .filters { grid-template-columns: 1fr; }
   .calendar { grid-template-columns: 64px repeat(6, minmax(110px, 1fr)); }
   .contact-list { grid-template-columns: 1fr; }
+  .calendar-nav { justify-content: flex-start; }
 }
