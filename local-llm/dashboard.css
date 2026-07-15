@@ -54,6 +54,7 @@ input, select, button { font: inherit; padding: 10px 12px; border-radius: 10px; 
 .badge.pendiente { background: rgba(79,140,255,0.2); color: #8ec5ff; }
 .badge.cancelada { background: rgba(249,115,22,0.2); color: #ffb26a; }
 .history-panel { margin-bottom: 24px; }
+.footer-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
 .calendar-panel { margin-bottom: 20px; }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
 .legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.9rem; }
