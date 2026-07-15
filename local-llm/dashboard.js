@@ -518,10 +518,14 @@ async function askAssistant() {
     const response = await fetch('http://127.0.0.1:5001/api/assistant', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt, provider: 'auto' })
     });
     const data = await response.json();
-    replyBox.innerHTML = `<p>${data.reply || 'Sin respuesta.'}</p>`;
+    if (!response.ok) {
+      throw new Error(data.error || 'Error desconocido en el asistente.');
+    }
+    const providerLabel = data.provider ? ` (${data.provider.toUpperCase()})` : '';
+    replyBox.innerHTML = `<p><strong>Respuesta${providerLabel}:</strong> ${data.reply || 'Sin respuesta.'}</p>`;
   } catch (error) {
     replyBox.innerHTML = `<p>Error al contactar al modelo local: ${error.message}</p>`;
   }
