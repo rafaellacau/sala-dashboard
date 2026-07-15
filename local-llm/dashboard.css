@@ -110,6 +110,9 @@ input, select, button { font: inherit; padding: 10px 12px; border-radius: 10px; 
 .slot-label { display: block; font-weight: 600; }
 .slot-note { display: block; opacity: 0.95; margin-top: 2px; }
 
+.item-actions { margin-top: 10px; display: flex; gap: 8px; }
+.item-actions .ghost-btn { padding: 7px 10px; font-size: 0.82rem; }
+
 .contact-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 
 @media (max-width: 900px) {

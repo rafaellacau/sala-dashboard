@@ -405,6 +405,9 @@ function renderUpcoming() {
       <div class="meta">${formatRange(item)}</div>
       <div class="meta">${formatDetails(item)}</div>
       <span class="badge ${item.status.toLowerCase()}">${item.status}</span>
+      <div class="item-actions">
+        <button type="button" class="ghost-btn" data-action="cancel" data-id="${item.id}">Cancelar reserva</button>
+      </div>
     </article>
   `).join('');
 }
@@ -601,6 +604,25 @@ function hasConflict(newItem) {
   });
 }
 
+function cancelReservationById(reservationId) {
+  const index = reservations.findIndex((item) => item.id === reservationId);
+  if (index === -1) {
+    showNotice('No se encontró la reserva a cancelar.', 'error');
+    return;
+  }
+
+  const current = reservations[index];
+  if (normalizeStatus(current) === 'Cancelada') {
+    showNotice('La reserva ya estaba cancelada.', 'info');
+    return;
+  }
+
+  reservations[index] = { ...current, status: 'Cancelada' };
+  saveReservations();
+  render();
+  showNotice('Reserva cancelada correctamente.', 'success');
+}
+
 function bindFilters() {
   const searchInput = document.getElementById('filterSearch');
   const roomSelect = document.getElementById('filterRoom');
@@ -630,6 +652,24 @@ function bindFilters() {
     roomSelect.value = '';
     statusSelect.value = '';
     render();
+  });
+}
+
+function bindReservationActions() {
+  const upcomingList = document.getElementById('upcomingList');
+  if (!upcomingList) return;
+
+  upcomingList.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+
+    const action = button.dataset.action;
+    const reservationId = button.dataset.id;
+    if (!reservationId) return;
+
+    if (action === 'cancel') {
+      cancelReservationById(reservationId);
+    }
   });
 }
 
@@ -719,6 +759,7 @@ document.getElementById('assistantBtn').addEventListener('click', askAssistant);
 
 bindFilters();
 bindCalendarNavigation();
+bindReservationActions();
 initFormDefaults();
 render();
 saveReservations();
