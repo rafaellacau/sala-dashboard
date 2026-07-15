@@ -5,6 +5,7 @@ const WORK_END_HOUR = 21;
 const NON_BLOCKING_ROLES = new Set(['Asistente de sala', 'Pasante']);
 let memoryStoreRaw = null;
 let calendarFocusDate = new Date();
+let editingReservationId = null;
 
 const defaultReservations = [
   {
@@ -406,6 +407,7 @@ function renderUpcoming() {
       <div class="meta">${formatDetails(item)}</div>
       <span class="badge ${item.status.toLowerCase()}">${item.status}</span>
       <div class="item-actions">
+        <button type="button" class="ghost-btn" data-action="edit" data-id="${item.id}">Editar</button>
         <button type="button" class="ghost-btn" data-action="cancel" data-id="${item.id}">Cancelar reserva</button>
       </div>
     </article>
@@ -588,12 +590,17 @@ async function resetData() {
 }
 
 function hasConflict(newItem) {
+  return hasConflictWithExisting(newItem, null);
+}
+
+function hasConflictWithExisting(newItem, ignoreId) {
   if (isNonBlockingRole(newItem.role)) return false;
 
   const newStart = toMinutes(newItem.startTime);
   const newEnd = toMinutes(newItem.endTime);
 
   return reservations.some((item) => {
+    if (ignoreId && item.id === ignoreId) return false;
     if (!isActiveReservation(item)) return false;
     if (isNonBlockingRole(item.role)) return false;
     if (item.room !== newItem.room || item.date !== newItem.date) return false;
@@ -602,6 +609,67 @@ function hasConflict(newItem) {
     const currentEnd = toMinutes(item.endTime);
     return overlaps(newStart, newEnd, currentStart, currentEnd);
   });
+}
+
+function fillReservationForm(item) {
+  const fields = {
+    title: item.title,
+    owner: item.owner,
+    role: item.role,
+    ownerId: item.ownerId,
+    participants: item.participants,
+    work: item.work,
+    project: item.project,
+    schedule: item.schedule,
+    room: item.room,
+    date: item.date,
+    startTime: item.startTime,
+    endTime: item.endTime,
+    status: item.status,
+  };
+
+  Object.entries(fields).forEach(([name, value]) => {
+    const field = document.querySelector(`[name="${name}"]`);
+    if (field) field.value = value || '';
+  });
+}
+
+function updateFormMode() {
+  const saveBtn = document.getElementById('saveReservationBtn');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+  if (saveBtn) {
+    saveBtn.textContent = editingReservationId ? 'Actualizar reserva' : 'Guardar reserva';
+  }
+  if (cancelEditBtn) {
+    cancelEditBtn.hidden = !editingReservationId;
+  }
+}
+
+function clearEditMode({ resetForm = false } = {}) {
+  editingReservationId = null;
+  updateFormMode();
+  if (resetForm) {
+    const form = document.getElementById('reservationForm');
+    if (form) form.reset();
+    initFormDefaults();
+  }
+}
+
+function startEditReservation(reservationId) {
+  const target = reservations.find((item) => item.id === reservationId);
+  if (!target) {
+    showNotice('No se encontró la reserva a editar.', 'error');
+    return;
+  }
+
+  editingReservationId = reservationId;
+  fillReservationForm(target);
+  setCalendarFocusDate(target.date);
+  updateFormMode();
+  renderCalendar();
+  document.getElementById('reservationForm')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  showNotice('Editando reserva seleccionada.', 'info');
 }
 
 function cancelReservationById(reservationId) {
@@ -666,6 +734,11 @@ function bindReservationActions() {
     const action = button.dataset.action;
     const reservationId = button.dataset.id;
     if (!reservationId) return;
+
+    if (action === 'edit') {
+      startEditReservation(reservationId);
+      return;
+    }
 
     if (action === 'cancel') {
       cancelReservationById(reservationId);
@@ -740,8 +813,23 @@ document.getElementById('reservationForm').addEventListener('submit', (event) =>
     return;
   }
 
-  if (hasConflict(newReservation)) {
+  if (hasConflictWithExisting(newReservation, editingReservationId)) {
     showNotice('Ese horario ya está reservado en esa sala. Elige otro bloque de tiempo.', 'error');
+    return;
+  }
+
+  if (editingReservationId) {
+    const index = reservations.findIndex((item) => item.id === editingReservationId);
+    if (index === -1) {
+      showNotice('No se encontró la reserva original para actualizar.', 'error');
+      return;
+    }
+    reservations[index] = { ...newReservation, id: editingReservationId };
+    setCalendarFocusDate(newReservation.date);
+    saveReservations();
+    clearEditMode({ resetForm: true });
+    render();
+    showNotice('Reserva actualizada correctamente.', 'success');
     return;
   }
 
@@ -756,10 +844,15 @@ document.getElementById('reservationForm').addEventListener('submit', (event) =>
 
 document.getElementById('resetBtn').addEventListener('click', resetData);
 document.getElementById('assistantBtn').addEventListener('click', askAssistant);
+document.getElementById('cancelEditBtn').addEventListener('click', () => {
+  clearEditMode({ resetForm: true });
+  showNotice('Edición cancelada.', 'info');
+});
 
 bindFilters();
 bindCalendarNavigation();
 bindReservationActions();
 initFormDefaults();
+updateFormMode();
 render();
 saveReservations();
