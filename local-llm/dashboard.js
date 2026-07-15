@@ -75,6 +75,10 @@ const defaultReservations = [
 let reservations = loadReservations();
 const filterState = { search: '', room: '', status: '' };
 
+function getDefaultReservations() {
+  return defaultReservations.map((item) => ({ ...item }));
+}
+
 function toMinutes(value) {
   const [hours, minutes] = value.split(':').map(Number);
   return (hours * 60) + minutes;
@@ -100,11 +104,11 @@ function loadReservations() {
   } catch {
     raw = memoryStoreRaw;
   }
-  if (!raw) return defaultReservations;
+  if (!raw) return getDefaultReservations();
   try {
     return JSON.parse(raw);
   } catch {
-    return defaultReservations;
+    return getDefaultReservations();
   }
 }
 
@@ -341,9 +345,10 @@ function resetData() {
     window.alert('Clave incorrecta. No se restablecieron los datos.');
     return;
   }
-  reservations = [...defaultReservations];
+  reservations = getDefaultReservations();
   saveReservations();
   render();
+  window.alert('Datos restablecidos correctamente.');
 }
 
 function hasConflict(newItem) {
