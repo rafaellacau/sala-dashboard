@@ -510,14 +510,20 @@ function renderCalendar() {
         return overlaps(slotStart, slotEnd, toMinutes(item.startTime), toMinutes(item.endTime));
       });
 
-      const occupiedItems = slotItems.filter((item) => !isNonBlockingRole(item.role));
+      const professorItems = slotItems.filter((item) => item.role === 'Profesor');
+      const occupiedItems = slotItems.filter((item) => !isNonBlockingRole(item.role) && item.role !== 'Profesor');
       const supportItems = slotItems.filter((item) => isNonBlockingRole(item.role));
 
       let state = 'free';
       let label = 'Disponible';
       let note = '';
 
-      if (occupiedItems.length) {
+      if (professorItems.length) {
+        state = 'professor';
+        label = 'Profesor';
+        const first = professorItems[0];
+        note = `${first.startTime}-${first.endTime} · ${first.owner}`;
+      } else if (occupiedItems.length) {
         state = 'occupied';
         label = 'Ocupada';
         const first = occupiedItems[0];
