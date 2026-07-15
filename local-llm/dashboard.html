@@ -4,7 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard de Reservas de Sala</title>
-    <link rel="stylesheet" href="dashboard.css" />
+    <script>
+      const cacheBust = `v=20260714-${Date.now()}`;
+      const stylesheet = document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = `dashboard.css?${cacheBust}`;
+      document.head.appendChild(stylesheet);
+    </script>
   </head>
   <body>
     <div class="app-shell">
@@ -162,6 +168,11 @@
       </section>
     </div>
 
-    <script src="dashboard.js"></script>
+    <script>
+      const appScript = document.createElement('script');
+      appScript.src = `dashboard.js?${cacheBust}`;
+      appScript.defer = true;
+      document.body.appendChild(appScript);
+    </script>
   </body>
 </html>

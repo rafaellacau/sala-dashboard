@@ -3,11 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="refresh" content="0; url=local-llm/dashboard.html" />
+    <meta http-equiv="refresh" content="0; url=local-llm/dashboard.html?v=20260714" />
     <title>Redirigiendo al dashboard</title>
+    <script>
+      window.location.replace(`local-llm/dashboard.html?v=${Date.now()}`);
+    </script>
   </head>
   <body>
     <p>Abriendo dashboard...</p>
-    <p><a href="local-llm/dashboard.html">Haz clic aqui si no redirige automaticamente.</a></p>
+    <p><a href="local-llm/dashboard.html?v=20260714">Haz clic aqui si no redirige automaticamente.</a></p>
   </body>
 </html>

@@ -122,6 +122,16 @@ function saveReservations() {
   }
 }
 
+async function clearBrowserCacheStorage() {
+  if (!('caches' in window)) return;
+  try {
+    const cacheKeys = await window.caches.keys();
+    await Promise.all(cacheKeys.map((key) => window.caches.delete(key)));
+  } catch {
+    // Algunos entornos restringen Cache Storage.
+  }
+}
+
 function formatDate(dateStr) {
   const date = new Date(`${dateStr}T00:00:00`);
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -339,7 +349,7 @@ async function askAssistant() {
   }
 }
 
-function resetData() {
+async function resetData() {
   const password = window.prompt('Ingresa la clave para restablecer los datos:');
   if (password === null) return;
   if (password.trim() !== RESET_PASSWORD) {
@@ -358,6 +368,7 @@ function resetData() {
   filterState.search = '';
   filterState.room = '';
   filterState.status = '';
+  await clearBrowserCacheStorage();
 
   const searchInput = document.getElementById('filterSearch');
   const roomSelect = document.getElementById('filterRoom');
@@ -368,7 +379,7 @@ function resetData() {
 
   saveReservations();
   window.alert('Datos restablecidos: no hay reservas activas.');
-  window.location.reload();
+  window.location.replace(`${window.location.pathname}?v=${Date.now()}`);
 }
 
 function hasConflict(newItem) {
