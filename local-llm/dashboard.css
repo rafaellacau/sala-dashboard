@@ -63,7 +63,7 @@ input, select, button { font: inherit; padding: 10px 12px; border-radius: 10px; 
 
 .calendar {
   display: grid;
-  grid-template-columns: 80px repeat(7, minmax(120px, 1fr));
+  grid-template-columns: 80px repeat(6, minmax(120px, 1fr));
   gap: 6px;
   overflow-x: auto;
 }
@@ -111,6 +111,6 @@ input, select, button { font: inherit; padding: 10px 12px; border-radius: 10px; 
 @media (max-width: 900px) {
   .cards, .grid { grid-template-columns: 1fr; }
   .filters { grid-template-columns: 1fr; }
-  .calendar { grid-template-columns: 64px repeat(7, minmax(110px, 1fr)); }
+  .calendar { grid-template-columns: 64px repeat(6, minmax(110px, 1fr)); }
   .contact-list { grid-template-columns: 1fr; }
 }

@@ -84,6 +84,11 @@ function toMinutes(value) {
   return (hours * 60) + minutes;
 }
 
+function isSunday(dateStr) {
+  const date = new Date(`${dateStr}T00:00:00`);
+  return date.getDay() === 0;
+}
+
 function isNonBlockingRole(role) {
   return NON_BLOCKING_ROLES.has(role);
 }
@@ -434,7 +439,11 @@ function bindFilters() {
 function initFormDefaults() {
   const dateInput = document.querySelector('input[name="date"]');
   if (dateInput && !dateInput.value) {
-    dateInput.value = new Date().toISOString().slice(0, 10);
+    const baseDate = new Date();
+    if (baseDate.getDay() === 0) {
+      baseDate.setDate(baseDate.getDate() + 1);
+    }
+    dateInput.value = baseDate.toISOString().slice(0, 10);
   }
 }
 
@@ -470,6 +479,11 @@ document.getElementById('reservationForm').addEventListener('submit', (event) =>
 
   if (start < dayStart || end > dayEnd) {
     window.alert('El horario permitido es de 8:00 AM a 9:00 PM.');
+    return;
+  }
+
+  if (isSunday(newReservation.date)) {
+    window.alert('Los domingos no están disponibles para reservas.');
     return;
   }
 
