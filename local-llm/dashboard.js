@@ -4,6 +4,7 @@ const WORK_START_HOUR = 8;
 const WORK_END_HOUR = 21;
 const NON_BLOCKING_ROLES = new Set(['Asistente de sala', 'Pasante']);
 let memoryStoreRaw = null;
+let calendarFocusDate = new Date();
 
 const defaultReservations = [
   {
@@ -82,6 +83,17 @@ function getDefaultReservations() {
 function toMinutes(value) {
   const [hours, minutes] = value.split(':').map(Number);
   return (hours * 60) + minutes;
+}
+
+function parseLocalDate(dateStr) {
+  return new Date(`${dateStr}T12:00:00`);
+}
+
+function setCalendarFocusDate(dateStr) {
+  const parsed = parseLocalDate(dateStr);
+  if (!Number.isNaN(parsed.getTime())) {
+    calendarFocusDate = parsed;
+  }
 }
 
 function isSunday(dateStr) {
@@ -423,10 +435,10 @@ function render() {
 
 function renderCalendar() {
   const calendar = document.getElementById('calendar');
-  const today = new Date();
-  const startOfWeek = new Date(today);
-  const mondayDelta = (today.getDay() + 6) % 7;
-  startOfWeek.setDate(today.getDate() - mondayDelta);
+  const baseDate = new Date(calendarFocusDate);
+  const startOfWeek = new Date(baseDate);
+  const mondayDelta = (baseDate.getDay() + 6) % 7;
+  startOfWeek.setDate(baseDate.getDate() - mondayDelta);
 
   const days = Array.from({ length: 6 }, (_, index) => {
     const date = new Date(startOfWeek);
@@ -531,6 +543,7 @@ async function resetData() {
 
   memoryStoreRaw = null;
   reservations = [];
+  calendarFocusDate = new Date();
   filterState.search = '';
   filterState.room = '';
   filterState.status = '';
@@ -654,6 +667,7 @@ document.getElementById('reservationForm').addEventListener('submit', (event) =>
   }
 
   reservations.push(newReservation);
+  setCalendarFocusDate(newReservation.date);
   saveReservations();
   event.currentTarget.reset();
   initFormDefaults();
