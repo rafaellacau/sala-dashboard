@@ -523,38 +523,6 @@ function renderCalendar() {
   calendar.innerHTML = [`<div class="week-head"></div>`, dayHeaders, ...rows].join('');
 }
 
-async function askAssistant() {
-  const prompt = document.getElementById('assistantPrompt').value.trim();
-  const replyBox = document.getElementById('assistantReply');
-  if (!prompt) {
-    replyBox.innerHTML = '<p>Escribe una pregunta o tarea para el modelo.</p>';
-    return;
-  }
-
-  const isLocalHost = ['127.0.0.1', 'localhost'].includes(window.location.hostname);
-  if (!isLocalHost) {
-    replyBox.innerHTML = '<p>Asistente local no disponible desde SharePoint. Esta función solo opera en tu computador (localhost).</p>';
-    return;
-  }
-
-  replyBox.innerHTML = '<p>Consultando el modelo local...</p>';
-  try {
-    const response = await fetch('http://127.0.0.1:5001/api/assistant', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, provider: 'auto' })
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || 'Error desconocido en el asistente.');
-    }
-    const providerLabel = data.provider ? ` (${data.provider.toUpperCase()})` : '';
-    replyBox.innerHTML = `<p><strong>Respuesta${providerLabel}:</strong> ${data.reply || 'Sin respuesta.'}</p>`;
-  } catch (error) {
-    replyBox.innerHTML = `<p>Error al contactar al modelo local: ${error.message}</p>`;
-  }
-}
-
 async function resetData() {
   const password = await askResetPassword();
   if (password === null) return;
@@ -843,7 +811,6 @@ document.getElementById('reservationForm').addEventListener('submit', (event) =>
 });
 
 document.getElementById('resetBtn').addEventListener('click', resetData);
-document.getElementById('assistantBtn').addEventListener('click', askAssistant);
 document.getElementById('cancelEditBtn').addEventListener('click', () => {
   clearEditMode({ resetForm: true });
   showNotice('Edición cancelada.', 'info');
