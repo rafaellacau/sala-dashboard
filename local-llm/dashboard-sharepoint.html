@@ -55,6 +55,19 @@ input, select, button { font: inherit; padding: 10px 12px; border-radius: 10px; 
 .item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
 .item h3 { margin: 0 0 6px; font-size: 1rem; }
 .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
+.item-badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; }
+.tone-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--tone-bg);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
 .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
 .badge.confirmada { background: rgba(34,197,94,0.2); color: #7ef0a6; }
 .badge.pendiente { background: rgba(79,140,255,0.2); color: #8ec5ff; }
@@ -97,8 +110,13 @@ input, select, button { font: inherit; padding: 10px 12px; border-radius: 10px; 
 .legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.9rem; }
 .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
 .dot.occupied { background: #ef4444; }
+.dot.professor { background: #f59e0b; }
+.dot.student { background: #8b5cf6; }
 .dot.free { background: #22c55e; }
 .dot.support { background: #3b82f6; }
+.dot.degree { background: #ef4444; }
+.dot.documentary { background: #f59e0b; }
+.dot.fiction { background: #22c55e; }
 
 .calendar {
   display: grid;
@@ -141,6 +159,13 @@ input, select, button { font: inherit; padding: 10px 12px; border-radius: 10px; 
 .slot.free { background: rgba(34,197,94,0.32); }
 .slot.occupied { background: rgba(239,68,68,0.5); }
 .slot.support { background: rgba(59,130,246,0.45); }
+.slot.dual {
+  background: linear-gradient(135deg, var(--role-tone) 0 50%, var(--project-tone) 50% 100%);
+}
+.slot.dual .slot-label,
+.slot.dual .slot-note {
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+}
 
 .slot-label { display: block; font-weight: 600; }
 .slot-note { display: block; opacity: 0.95; margin-top: 2px; }
@@ -315,7 +340,14 @@ input, select, button { font: inherit; padding: 10px 12px; border-radius: 10px; 
           <div class="legend-group">
             <span class="legend-title">Rol</span>
             <span class="legend-item"><i class="dot professor"></i>Amarillo: profesor</span>
+            <span class="legend-item"><i class="dot student"></i>Morado: estudiante</span>
             <span class="legend-item"><i class="dot support"></i>Azul: asistente/pasante</span>
+          </div>
+          <div class="legend-group">
+            <span class="legend-title">Proyecto</span>
+            <span class="legend-item"><i class="dot degree"></i>Rojo: final de grado</span>
+            <span class="legend-item"><i class="dot documentary"></i>Amarillo: documental</span>
+            <span class="legend-item"><i class="dot fiction"></i>Verde: ficción</span>
           </div>
         </div>
         <div id="calendar" class="calendar"></div>

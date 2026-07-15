@@ -9,6 +9,17 @@ const ROOM_MAP = new Map([
   ['Sala C', 'Sala de Proyección']
 ]);
 const ALLOWED_ROOMS = ['Sala de Postproducción', 'Sala de Proyección'];
+const ROLE_TONES = {
+  Profesor: { label: 'Profesor', color: '#f59e0b' },
+  Estudiante: { label: 'Estudiante', color: '#8b5cf6' },
+  'Asistente de sala': { label: 'Asistente', color: '#3b82f6' },
+  Pasante: { label: 'Pasante', color: '#06b6d4' }
+};
+const PROJECT_TONES = [
+  { match: /grado|tesis|final/i, label: 'Proyecto final de grado', color: '#ef4444' },
+  { match: /documental/i, label: 'Documental', color: '#f59e0b' },
+  { match: /ficci[oó]n/i, label: 'Ficción', color: '#22c55e' }
+];
 let memoryStoreRaw = null;
 let calendarFocusDate = new Date();
 let editingReservationId = null;
@@ -361,6 +372,31 @@ function formatDetails(item) {
   return parts.join(' · ');
 }
 
+function getRoleTone(role) {
+  return ROLE_TONES[role] || { label: role || 'Rol', color: '#64748b' };
+}
+
+function getProjectTone(item) {
+  const text = [item.title, item.project, item.work].filter(Boolean).join(' ');
+  const tone = PROJECT_TONES.find((entry) => entry.match.test(text));
+  return tone || { label: item.project || 'Otro proyecto', color: '#64748b' };
+}
+
+function hexToRgba(hex, alpha) {
+  const cleaned = hex.replace('#', '');
+  const value = cleaned.length === 3
+    ? cleaned.split('').map((char) => char + char).join('')
+    : cleaned;
+  const red = parseInt(value.slice(0, 2), 16);
+  const green = parseInt(value.slice(2, 4), 16);
+  const blue = parseInt(value.slice(4, 6), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function toneStyles(color) {
+  return `--tone-color: ${color}; --tone-bg: ${hexToRgba(color, 0.18)};`;
+}
+
 function normalizeStatus(item) {
   const now = new Date();
   const eventDate = new Date(`${item.date}T${item.endTime}`);
@@ -421,6 +457,10 @@ function renderUpcoming() {
     <article class="item">
       <h3>${item.title}</h3>
       <div class="meta">${item.room} · ${item.owner}</div>
+      <div class="item-badges">
+        <span class="tone-badge" style="${toneStyles(getRoleTone(item.role).color)}">Rol: ${getRoleTone(item.role).label}</span>
+        <span class="tone-badge" style="${toneStyles(getProjectTone(item).color)}">Proyecto: ${getProjectTone(item).label}</span>
+      </div>
       <div class="meta">${formatRange(item)}</div>
       <div class="meta">${formatDetails(item)}</div>
       <span class="badge ${item.status.toLowerCase()}">${item.status}</span>
@@ -445,6 +485,10 @@ function renderHistory() {
     <article class="item">
       <h3>${item.title}</h3>
       <div class="meta">${item.room} · ${item.owner}</div>
+      <div class="item-badges">
+        <span class="tone-badge" style="${toneStyles(getRoleTone(item.role).color)}">Rol: ${getRoleTone(item.role).label}</span>
+        <span class="tone-badge" style="${toneStyles(getProjectTone(item).color)}">Proyecto: ${getProjectTone(item).label}</span>
+      </div>
       <div class="meta">${formatRange(item)}</div>
       <div class="meta">${formatDetails(item)}</div>
       <span class="badge ${item.status.toLowerCase()}">${item.status}</span>
@@ -513,30 +557,38 @@ function renderCalendar() {
       const professorItems = slotItems.filter((item) => item.role === 'Profesor');
       const occupiedItems = slotItems.filter((item) => !isNonBlockingRole(item.role) && item.role !== 'Profesor');
       const supportItems = slotItems.filter((item) => isNonBlockingRole(item.role));
+      const activeItem = professorItems[0] || occupiedItems[0] || supportItems[0] || null;
 
       let state = 'free';
       let label = 'Disponible';
       let note = '';
+      let roleColor = '#22c55e';
+      let projectColor = '#22c55e';
+
+      if (activeItem) {
+        roleColor = getRoleTone(activeItem.role).color;
+        projectColor = getProjectTone(activeItem).color;
+      }
 
       if (professorItems.length) {
         state = 'professor';
         label = 'Profesor';
         const first = professorItems[0];
-        note = `${first.startTime}-${first.endTime} · ${first.owner}`;
+        note = `${first.startTime}-${first.endTime} · ${first.owner} · ${getProjectTone(first).label}`;
       } else if (occupiedItems.length) {
         state = 'occupied';
-        label = 'Ocupada';
+        label = activeItem ? getRoleTone(activeItem.role).label : 'Ocupada';
         const first = occupiedItems[0];
-        note = `${first.startTime}-${first.endTime} · ${first.owner}`;
+        note = `${first.startTime}-${first.endTime} · ${first.owner} · ${getProjectTone(first).label}`;
       } else if (supportItems.length) {
         state = 'support';
-        label = 'Soporte';
+        label = activeItem ? getRoleTone(activeItem.role).label : 'Soporte';
         const first = supportItems[0];
-        note = `${first.startTime}-${first.endTime} · ${first.role}`;
+        note = `${first.startTime}-${first.endTime} · ${first.owner} · ${getProjectTone(first).label}`;
       }
 
       rows.push(`
-        <div class="slot ${state}" title="${label}${note ? ` - ${note}` : ''}">
+        <div class="slot ${state} dual" style="--role-tone: ${roleColor}; --project-tone: ${projectColor};" title="${label}${note ? ` - ${note}` : ''}">
           <span class="slot-label">${label}</span>
           ${note ? `<span class="slot-note">${note}</span>` : ''}
         </div>
