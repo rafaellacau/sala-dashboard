@@ -341,11 +341,31 @@ async function askAssistant() {
 
 function resetData() {
   const password = window.prompt('Ingresa la clave para restablecer los datos:');
-  if (password !== RESET_PASSWORD) {
+  if (password === null) return;
+  if (password.trim() !== RESET_PASSWORD) {
     window.alert('Clave incorrecta. No se restablecieron los datos.');
     return;
   }
+
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Si el navegador bloquea localStorage, continuamos con memoria temporal.
+  }
+
+  memoryStoreRaw = null;
   reservations = getDefaultReservations();
+  filterState.search = '';
+  filterState.room = '';
+  filterState.status = '';
+
+  const searchInput = document.getElementById('filterSearch');
+  const roomSelect = document.getElementById('filterRoom');
+  const statusSelect = document.getElementById('filterStatus');
+  if (searchInput) searchInput.value = '';
+  if (roomSelect) roomSelect.value = '';
+  if (statusSelect) statusSelect.value = '';
+
   saveReservations();
   render();
   window.alert('Datos restablecidos correctamente.');
