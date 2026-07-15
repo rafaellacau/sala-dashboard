@@ -239,6 +239,65 @@ function askResetPassword() {
   });
 }
 
+function getNoticeBox() {
+  let box = document.getElementById('appNotice');
+  if (box) return box;
+
+  box = document.createElement('div');
+  box.id = 'appNotice';
+  box.style.cssText = [
+    'display:none',
+    'margin:0 0 14px',
+    'padding:10px 12px',
+    'border-radius:10px',
+    'font-size:0.92rem',
+    'font-weight:600',
+    'border:1px solid transparent'
+  ].join(';');
+
+  const shell = document.querySelector('.app-shell');
+  const firstPanel = document.querySelector('.grid');
+  if (shell && firstPanel) {
+    shell.insertBefore(box, firstPanel);
+  }
+  return box;
+}
+
+function showNotice(message, type = 'info') {
+  const box = getNoticeBox();
+  if (!box) return;
+
+  const palette = {
+    info: {
+      bg: 'rgba(79,140,255,0.18)',
+      border: 'rgba(79,140,255,0.55)',
+      text: '#d7e7ff'
+    },
+    success: {
+      bg: 'rgba(34,197,94,0.2)',
+      border: 'rgba(34,197,94,0.58)',
+      text: '#cbf7dc'
+    },
+    error: {
+      bg: 'rgba(239,68,68,0.22)',
+      border: 'rgba(239,68,68,0.58)',
+      text: '#ffd5d5'
+    }
+  };
+
+  const current = palette[type] || palette.info;
+  box.textContent = message;
+  box.style.display = 'block';
+  box.style.background = current.bg;
+  box.style.borderColor = current.border;
+  box.style.color = current.text;
+
+  window.clearTimeout(showNotice.timeoutId);
+  showNotice.timeoutId = window.setTimeout(() => {
+    box.style.display = 'none';
+  }, 4000);
+}
+
 function formatDate(dateStr) {
   const date = new Date(`${dateStr}T00:00:00`);
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -460,7 +519,7 @@ async function resetData() {
   const password = await askResetPassword();
   if (password === null) return;
   if (password.trim() !== RESET_PASSWORD) {
-    window.alert('Clave incorrecta. No se restablecieron los datos.');
+    showNotice('Clave incorrecta. No se restablecieron los datos.', 'error');
     return;
   }
 
@@ -486,7 +545,7 @@ async function resetData() {
 
   saveReservations();
   render();
-  window.alert('Datos restablecidos: no hay reservas activas.');
+  showNotice('Datos restablecidos: no hay reservas activas.', 'success');
 }
 
 function hasConflict(newItem) {
@@ -575,22 +634,22 @@ document.getElementById('reservationForm').addEventListener('submit', (event) =>
   const dayEnd = WORK_END_HOUR * 60;
 
   if (start >= end) {
-    window.alert('La hora de fin debe ser mayor que la hora de inicio.');
+    showNotice('La hora de fin debe ser mayor que la hora de inicio.', 'error');
     return;
   }
 
   if (start < dayStart || end > dayEnd) {
-    window.alert('El horario permitido es de 8:00 AM a 9:00 PM.');
+    showNotice('El horario permitido es de 8:00 AM a 9:00 PM.', 'error');
     return;
   }
 
   if (isSunday(newReservation.date)) {
-    window.alert('Los domingos no están disponibles para reservas.');
+    showNotice('Los domingos no están disponibles para reservas.', 'error');
     return;
   }
 
   if (hasConflict(newReservation)) {
-    window.alert('Ese horario ya está reservado en esa sala. Elige otro bloque de tiempo.');
+    showNotice('Ese horario ya está reservado en esa sala. Elige otro bloque de tiempo.', 'error');
     return;
   }
 
@@ -599,6 +658,7 @@ document.getElementById('reservationForm').addEventListener('submit', (event) =>
   event.currentTarget.reset();
   initFormDefaults();
   render();
+  showNotice('Reserva guardada correctamente.', 'success');
 });
 
 document.getElementById('resetBtn').addEventListener('click', resetData);
