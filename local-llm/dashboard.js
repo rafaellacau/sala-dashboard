@@ -262,7 +262,7 @@ function renderCalendar() {
   const mondayDelta = (today.getDay() + 6) % 7;
   startOfWeek.setDate(today.getDate() - mondayDelta);
 
-  const days = Array.from({ length: 7 }, (_, index) => {
+  const days = Array.from({ length: 6 }, (_, index) => {
     const date = new Date(startOfWeek);
     date.setDate(startOfWeek.getDate() + index);
     return date;
